@@ -1,0 +1,33 @@
+{
+  "name": "creator-commerce",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"pnpm --filter @cc/api dev\" \"pnpm --filter @cc/web dev\"",
+    "dev:api": "pnpm --filter @cc/api dev",
+    "dev:web": "pnpm --filter @cc/web dev",
+    "build": "pnpm --filter @cc/shared build && pnpm --filter @cc/api build && pnpm --filter @cc/web build",
+    "start": "concurrently -n api,web -c magenta,cyan \"pnpm --filter @cc/api start\" \"pnpm --filter @cc/web start\"",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css}\"",
+    "db:generate": "pnpm --filter @cc/api db:generate",
+    "db:push": "pnpm --filter @cc/api db:push",
+    "db:migrate": "pnpm --filter @cc/api db:migrate",
+    "db:seed": "pnpm --filter @cc/api db:seed",
+    "db:studio": "pnpm --filter @cc/api db:studio",
+    "db:reset": "pnpm --filter @cc/api db:reset"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "concurrently": "^9.1.2",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "^5.7.3"
+  }
+}

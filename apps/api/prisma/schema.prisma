@@ -1,0 +1,950 @@
+// Creator Commerce — Phase 1 schema.
+//
+// Multi-tenancy rule: every commerce entity carries a `storeId`, and every
+// store-scoped unique constraint is scoped by that column. Access is always
+// resolved through StoreMember in the service layer — never from a client-
+// supplied storeId alone.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Migrations must not go through a transaction-mode connection pooler, so
+  // hosted Postgres (Neon, Supabase) needs the direct endpoint here. Falls back
+  // to DATABASE_URL when unset, which is what a local server wants.
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  SUPER_ADMIN
+  STORE_OWNER
+  STORE_ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum StorePermission {
+  STORE_VIEW
+  STORE_EDIT
+  PRODUCT_VIEW
+  PRODUCT_CREATE
+  PRODUCT_EDIT
+  PRODUCT_DELETE
+  ORDER_VIEW
+  ORDER_UPDATE
+  CUSTOMER_VIEW
+  ANALYTICS_VIEW
+  THEME_EDIT
+  SETTINGS_EDIT
+  TEAM_MANAGE
+}
+
+enum AccountProvider {
+  GOOGLE
+  DISCORD
+  TWITCH
+}
+
+enum CreatorType {
+  VTUBER
+  STREAMER
+  ARTIST
+  ILLUSTRATOR
+  WRITER
+  MUSICIAN
+  CONTENT_CREATOR
+  BRAND
+  PERSONAL_SHOP
+  OTHER
+}
+
+enum StoreStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+}
+
+enum ThemePreset {
+  MINIMAL
+  CUTE
+  DARK
+  GAMING
+  PASTEL
+  EDITORIAL
+  CYBER
+  ARTIST_PORTFOLIO
+  VTUBER
+  CLEAN_COMMERCE
+}
+
+enum ButtonStyle {
+  ROUNDED
+  SQUARE
+  PILL
+}
+
+enum ColorMode {
+  LIGHT
+  DARK
+}
+
+enum SectionType {
+  HEADER
+  HERO
+  FEATURED_PRODUCTS
+  PRODUCT_GRID
+  COLLECTION_LIST
+  IMAGE_BANNER
+  TEXT_BLOCK
+  IMAGE_WITH_TEXT
+  GALLERY
+  VIDEO
+  SOCIAL_LINKS
+  NEWSLETTER
+  FOOTER
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum InventoryMode {
+  NOT_TRACKED
+  TRACKED
+  TRACKED_ALLOW_BACKORDER
+}
+
+enum FulfillmentType {
+  MANUAL
+  STOCK
+  PRINT_ON_DEMAND
+  DROPSHIP
+  DIGITAL
+}
+
+enum CollectionStatus {
+  DRAFT
+  ACTIVE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  FULFILLED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PROCESSING
+  FULFILLED
+  SHIPPED
+  DELIVERED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+enum AddressKind {
+  SHIPPING
+  BILLING
+}
+
+enum PaymentChannelType {
+  PROMPTPAY_PHONE
+  PROMPTPAY_NATIONAL_ID
+  PROMPTPAY_EWALLET
+  BANK_TRANSFER
+  CUSTOM_QR
+}
+
+enum PaymentProofStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MediaOwnerType {
+  STORE
+  PRODUCT
+  VARIANT
+  COLLECTION
+  THEME
+}
+
+enum FulfillmentProviderKind {
+  MANUAL
+  PRINTFUL
+  PRINTIFY
+  CJ_DROPSHIPPING
+  CUSTOM
+}
+
+// ---------------------------------------------------------------------------
+// Identity & access
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  name          String?
+  avatarUrl     String?
+  role          UserRole  @default(STORE_OWNER)
+  emailVerified Boolean   @default(false)
+  onboardedAt   DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts            Account[]
+  memberships         StoreMember[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([role])
+  @@map("users")
+}
+
+/// OAuth identity (Google / Discord / Twitch). Structure only in Phase 1.
+model Account {
+  id                String          @id @default(cuid())
+  userId            String
+  provider          AccountProvider
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+  scope             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  /// SHA-256 of the raw token; the raw value is never persisted.
+  tokenHash String    @unique
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+/// Named role definition. Seeded from the shared RBAC matrix so the platform can
+/// later support per-store custom roles without a migration.
+model Role {
+  id          String   @id @default(cuid())
+  key         UserRole @unique
+  label       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId     String
+  permission StorePermission
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+  @@map("role_permissions")
+}
+
+model StoreMember {
+  id               String            @id @default(cuid())
+  storeId          String
+  userId           String
+  role             UserRole          @default(STAFF)
+  /// Additive grants on top of the role matrix.
+  extraPermissions StorePermission[]
+  invitedEmail     String?
+  acceptedAt       DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, userId])
+  @@index([userId])
+  @@map("store_members")
+}
+
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
+model Store {
+  id            String      @id @default(cuid())
+  name          String
+  handle        String      @unique
+  description   String?
+  creatorType   CreatorType @default(OTHER)
+  logoUrl       String?
+  avatarUrl     String?
+  bannerUrl     String?
+  status        StoreStatus @default(DRAFT)
+  currency      String      @default("THB")
+  country       String?     @default("TH")
+  customDomain  String?     @unique
+  socialLinks   Json        @default("{}")
+  orderSequence Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  members         StoreMember[]
+  theme           StoreTheme?
+  pages           StorePage[]
+  products        Product[]
+  collections     Collection[]
+  customers       Customer[]
+  carts           Cart[]
+  orders          Order[]
+  discounts       Discount[]
+  media           Media[]
+  providers       FulfillmentProvider[]
+  paymentChannels StorePaymentChannel[]
+
+  @@index([status])
+  @@map("stores")
+}
+
+model StoreTheme {
+  id          String      @id @default(cuid())
+  storeId     String      @unique
+  preset      ThemePreset @default(CLEAN_COMMERCE)
+  colors      Json
+  typography  Json
+  layout      Json
+  effects     Json
+  buttonStyle ButtonStyle @default(ROUNDED)
+  colorMode   ColorMode   @default(LIGHT)
+  faviconUrl  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_themes")
+}
+
+model StorePage {
+  id        String   @id @default(cuid())
+  storeId   String
+  slug      String
+  title     String
+  isHome    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store    Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sections StoreSection[]
+
+  @@unique([storeId, slug])
+  @@index([storeId])
+  @@map("store_pages")
+}
+
+model StoreSection {
+  id        String      @id @default(cuid())
+  pageId    String
+  type      SectionType
+  position  Int
+  visible   Boolean     @default(true)
+  settings  Json        @default("{}")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  page StorePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, position])
+  @@map("store_sections")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue
+// ---------------------------------------------------------------------------
+
+model Product {
+  id              String          @id @default(cuid())
+  storeId         String
+  title           String
+  slug            String
+  description     String?
+  status          ProductStatus   @default(DRAFT)
+  category        String?
+  /// Display price. Variant prices are authoritative at checkout.
+  price           Int
+  compareAtPrice  Int?
+  cost            Int?
+  inventoryMode   InventoryMode   @default(NOT_TRACKED)
+  fulfillmentType FulfillmentType @default(MANUAL)
+  seoTitle        String?
+  seoDescription  String?
+  metadata        Json            @default("{}")
+  publishedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  store       Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  media       ProductMedia[]
+  options     ProductOption[]
+  variants    ProductVariant[]
+  collections CollectionProduct[]
+  orderItems  OrderItem[]
+
+  @@unique([storeId, slug])
+  @@index([storeId, status])
+  @@index([storeId, createdAt])
+  @@map("products")
+}
+
+model ProductMedia {
+  id        String   @id @default(cuid())
+  productId String
+  mediaId   String?
+  url       String
+  alt       String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  media   Media?  @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([productId, position])
+  @@map("product_media")
+}
+
+model ProductOption {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values  ProductOptionValue[]
+
+  @@unique([productId, name])
+  @@index([productId, position])
+  @@map("product_options")
+}
+
+model ProductOptionValue {
+  id       String  @id @default(cuid())
+  optionId String
+  value    String
+  /// Optional grouping for large option sets, e.g. brand "Apple" for a device.
+  group    String?
+  position Int     @default(0)
+
+  option        ProductOption        @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  variantValues VariantOptionValue[]
+
+  @@unique([optionId, value])
+  @@index([optionId, position])
+  @@map("product_option_values")
+}
+
+model ProductVariant {
+  id             String   @id @default(cuid())
+  productId      String
+  storeId        String
+  /// Human-readable combination, e.g. "iPhone 17 Pro / Pink / MagSafe".
+  title          String
+  sku            String?
+  price          Int
+  compareAtPrice Int?
+  cost           Int?
+  stock          Int      @default(0)
+  enabled        Boolean  @default(true)
+  imageUrl       String?
+  /// Denormalised supplier SKU for quick POD lookups; the authoritative mapping
+  /// lives in FulfillmentMapping.
+  supplierSku    String?
+  position       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product      Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValues VariantOptionValue[]
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  mappings     FulfillmentMapping[]
+
+  @@unique([storeId, sku])
+  @@index([productId, position])
+  @@index([storeId])
+  @@map("product_variants")
+}
+
+model VariantOptionValue {
+  variantId     String
+  optionValueId String
+
+  variant     ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  optionValue ProductOptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  @@id([variantId, optionValueId])
+  @@index([optionValueId])
+  @@map("variant_option_values")
+}
+
+model Collection {
+  id          String           @id @default(cuid())
+  storeId     String
+  name        String
+  slug        String
+  description String?
+  imageUrl    String?
+  status      CollectionStatus @default(ACTIVE)
+  position    Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  store    Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products CollectionProduct[]
+
+  @@unique([storeId, slug])
+  @@index([storeId, position])
+  @@map("collections")
+}
+
+model CollectionProduct {
+  collectionId String
+  productId    String
+  position     Int    @default(0)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+  @@index([productId])
+  @@map("collection_products")
+}
+
+// ---------------------------------------------------------------------------
+// Customers
+// ---------------------------------------------------------------------------
+
+model Customer {
+  id          String    @id @default(cuid())
+  storeId     String
+  email       String
+  name        String?
+  phone       String?
+  note        String?
+  ordersCount Int       @default(0)
+  totalSpent  Int       @default(0)
+  lastOrderAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  addresses Address[]
+  orders    Order[]
+  carts     Cart[]
+
+  @@unique([storeId, email])
+  @@index([storeId, createdAt])
+  @@map("customers")
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  customerId String
+  kind       AddressKind @default(SHIPPING)
+  isDefault  Boolean     @default(false)
+  firstName  String
+  lastName   String
+  phone      String?
+  line1      String
+  line2      String?
+  district   String?
+  province   String
+  postalCode String
+  country    String      @default("TH")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("addresses")
+}
+
+// ---------------------------------------------------------------------------
+// Cart
+// ---------------------------------------------------------------------------
+
+model Cart {
+  id           String    @id @default(cuid())
+  storeId      String
+  /// Opaque token stored in a cookie so anonymous carts survive reloads.
+  token        String    @unique
+  customerId   String?
+  discountCode String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  store    Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  customer Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    CartItem[]
+
+  @@index([storeId])
+  @@index([customerId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  variantId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+model Order {
+  id                 String            @id @default(cuid())
+  storeId            String
+  /// Per-store human reference, e.g. "NEKO-1042".
+  orderNumber        String
+  customerId         String?
+  status             OrderStatus       @default(PENDING)
+  paymentStatus      PaymentStatus     @default(PENDING)
+  fulfillmentStatus  FulfillmentStatus @default(UNFULFILLED)
+  currency           String            @default("THB")
+  subtotal           Int
+  discountTotal      Int               @default(0)
+  shippingTotal      Int               @default(0)
+  taxTotal           Int               @default(0)
+  total              Int
+  discountCode       String?
+  email              String
+  phone              String?
+  customerName       String
+  note               String?
+  paymentProvider    String            @default("manual")
+  paymentReference   String?
+  paymentChannelId   String?
+  /// Frozen copy of the channel details the buyer was shown, so a later edit to
+  /// the channel cannot rewrite what they were told to pay.
+  paymentInstruction Json?
+  shippingMethod     String?
+  trackingNumber     String?
+  placedAt           DateTime          @default(now())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  store          Store                @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  customer       Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+  addresses      OrderAddress[]
+  fulfillments   FulfillmentOrder[]
+  paymentProofs  PaymentProof[]
+  paymentChannel StorePaymentChannel? @relation(fields: [paymentChannelId], references: [id], onDelete: SetNull)
+
+  @@unique([storeId, orderNumber])
+  @@index([storeId, createdAt])
+  @@index([storeId, status])
+  @@index([customerId])
+  @@index([paymentChannelId])
+  @@map("orders")
+}
+
+/// Immutable snapshot of what was bought. Product/variant links are nullable and
+/// set to null on delete so historical orders never change.
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  productId    String?
+  variantId    String?
+  productTitle String
+  variantTitle String
+  sku          String?
+  imageUrl     String?
+  unitPrice    Int
+  quantity     Int
+  lineTotal    Int
+  /// Frozen option values, supplier SKU and anything else needed to re-create
+  /// the purchase without reading the live catalogue.
+  snapshot     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderAddress {
+  id         String      @id @default(cuid())
+  orderId    String
+  kind       AddressKind @default(SHIPPING)
+  firstName  String
+  lastName   String
+  phone      String?
+  line1      String
+  line2      String?
+  district   String?
+  province   String
+  postalCode String
+  country    String      @default("TH")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, kind])
+  @@map("order_addresses")
+}
+
+model Discount {
+  id            String       @id @default(cuid())
+  storeId       String
+  code          String
+  type          DiscountType
+  /// Percent (0-100) for PERCENTAGE, minor units for FIXED_AMOUNT, ignored for
+  /// FREE_SHIPPING.
+  value         Int          @default(0)
+  minimumSpend  Int?
+  usageLimit    Int?
+  usageCount    Int          @default(0)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  active        Boolean      @default(true)
+  /// Empty array means "applies to everything".
+  productIds    String[]     @default([])
+  collectionIds String[]     @default([])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, code])
+  @@index([storeId, active])
+  @@map("discounts")
+}
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
+
+model Media {
+  id        String         @id @default(cuid())
+  storeId   String
+  ownerType MediaOwnerType @default(STORE)
+  ownerId   String?
+  /// Storage key (local path or object-storage key). Never the binary itself.
+  key       String
+  url       String
+  fileName  String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  alt       String?
+  createdAt DateTime       @default(now())
+
+  store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productMedia ProductMedia[]
+
+  @@index([storeId, createdAt])
+  @@index([ownerType, ownerId])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Fulfillment (architecture only in Phase 1 — no live provider calls)
+// ---------------------------------------------------------------------------
+
+model FulfillmentProvider {
+  id        String                  @id @default(cuid())
+  storeId   String
+  kind      FulfillmentProviderKind @default(MANUAL)
+  name      String
+  enabled   Boolean                 @default(false)
+  /// Provider credentials/settings. Encrypt before storing real secrets.
+  config    Json                    @default("{}")
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  store    Store                @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  mappings FulfillmentMapping[]
+  orders   FulfillmentOrder[]
+
+  @@unique([storeId, kind, name])
+  @@index([storeId])
+  @@map("fulfillment_providers")
+}
+
+model FulfillmentMapping {
+  id                String   @id @default(cuid())
+  providerId        String
+  variantId         String
+  supplierSku       String
+  supplierProductId String?
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  provider FulfillmentProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  variant  ProductVariant      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, variantId])
+  @@index([variantId])
+  @@map("fulfillment_mappings")
+}
+
+model FulfillmentOrder {
+  id             String            @id @default(cuid())
+  orderId        String
+  providerId     String
+  externalId     String?
+  status         FulfillmentStatus @default(UNFULFILLED)
+  trackingNumber String?
+  trackingUrl    String?
+  rawResponse    Json              @default("{}")
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  order    Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider FulfillmentProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([providerId, externalId])
+  @@map("fulfillment_orders")
+}
+
+// ---------------------------------------------------------------------------
+// Payments
+//
+// The platform never holds funds: a buyer transfers directly to the creator's
+// own PromptPay / bank / e-wallet account, and the creator confirms receipt.
+// That means no card data is stored anywhere, and also that nothing here can
+// verify a transfer on its own — confirmation is manual, or comes from a slip.
+// ---------------------------------------------------------------------------
+
+model StorePaymentChannel {
+  id                String             @id @default(cuid())
+  storeId           String
+  type              PaymentChannelType
+  label             String
+  accountName       String
+  /// Mobile number, national/tax ID, or e-wallet id, depending on `type`.
+  proxyValue        String?
+  bankCode          String?
+  bankAccountNumber String?
+  /// Only for CUSTOM_QR, where the creator supplies their own image.
+  qrImageUrl        String?
+  instructions      String?
+  enabled           Boolean            @default(true)
+  isDefault         Boolean            @default(false)
+  position          Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  store  Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orders Order[]
+  proofs PaymentProof[]
+
+  @@unique([storeId, label])
+  @@index([storeId, position])
+  @@map("store_payment_channels")
+}
+
+model PaymentProof {
+  id            String             @id @default(cuid())
+  orderId       String
+  channelId     String?
+  /// What the buyer says they transferred, in minor units.
+  amount        Int
+  reference     String?
+  /// Storage key + URL of the uploaded slip; the binary lives in object storage.
+  slipKey       String
+  slipUrl       String
+  transferredAt DateTime?
+  status        PaymentProofStatus @default(PENDING)
+  reviewNote    String?
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  order   Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  channel StorePaymentChannel? @relation(fields: [channelId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+  @@index([status])
+  @@map("payment_proofs")
+}

@@ -1,0 +1,304 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Design tokens — dashboard / platform chrome.
+   The storefront is themed separately through `--store-*` variables written by
+   each creator's theme, so nothing here leaks into a customer-facing page.
+   --------------------------------------------------------------------------- */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
+
+  --shadow-card: 0 1px 2px rgb(18 16 32 / 0.04), 0 8px 24px -12px rgb(18 16 32 / 0.12);
+  --shadow-pop: 0 2px 6px rgb(18 16 32 / 0.06), 0 18px 44px -16px rgb(18 16 32 / 0.24);
+
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-scale-in: scale-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+:root {
+  --radius: 14px;
+
+  /* Loaded via <link> in the root layout; degrades to the system stack offline. */
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --background: oklch(0.99 0.003 285);
+  --foreground: oklch(0.21 0.02 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 285);
+
+  /* Signature iris — deliberately not shadcn's default near-black. */
+  --primary: oklch(0.53 0.22 285);
+  --primary-foreground: oklch(0.99 0.005 285);
+
+  --secondary: oklch(0.96 0.008 285);
+  --secondary-foreground: oklch(0.32 0.02 285);
+  --muted: oklch(0.965 0.006 285);
+  --muted-foreground: oklch(0.53 0.015 285);
+  --accent: oklch(0.7 0.17 15);
+  --accent-foreground: oklch(0.99 0.005 285);
+
+  --destructive: oklch(0.58 0.21 22);
+  --destructive-foreground: oklch(0.99 0.005 285);
+  --success: oklch(0.62 0.15 155);
+  --success-foreground: oklch(0.99 0.005 155);
+  --warning: oklch(0.78 0.15 75);
+  --warning-foreground: oklch(0.25 0.05 75);
+
+  --border: oklch(0.92 0.006 285);
+  --input: oklch(0.92 0.006 285);
+  --ring: oklch(0.53 0.22 285);
+
+  --sidebar: oklch(0.985 0.004 285);
+  --sidebar-foreground: oklch(0.35 0.015 285);
+  --sidebar-accent: oklch(0.95 0.014 285);
+}
+
+.dark {
+  --background: oklch(0.16 0.015 285);
+  --foreground: oklch(0.96 0.005 285);
+  --card: oklch(0.2 0.017 285);
+  --card-foreground: oklch(0.96 0.005 285);
+  --popover: oklch(0.22 0.018 285);
+  --popover-foreground: oklch(0.96 0.005 285);
+
+  --primary: oklch(0.68 0.19 288);
+  --primary-foreground: oklch(0.16 0.02 285);
+
+  --secondary: oklch(0.26 0.018 285);
+  --secondary-foreground: oklch(0.93 0.005 285);
+  --muted: oklch(0.25 0.016 285);
+  --muted-foreground: oklch(0.68 0.014 285);
+  --accent: oklch(0.72 0.16 15);
+  --accent-foreground: oklch(0.16 0.02 285);
+
+  --destructive: oklch(0.62 0.2 22);
+  --destructive-foreground: oklch(0.98 0.005 285);
+  --success: oklch(0.68 0.15 155);
+  --success-foreground: oklch(0.16 0.02 155);
+  --warning: oklch(0.8 0.14 75);
+  --warning-foreground: oklch(0.2 0.04 75);
+
+  --border: oklch(0.3 0.016 285);
+  --input: oklch(0.32 0.016 285);
+  --ring: oklch(0.68 0.19 288);
+
+  --sidebar: oklch(0.18 0.016 285);
+  --sidebar-foreground: oklch(0.78 0.012 285);
+  --sidebar-accent: oklch(0.26 0.02 285);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.018em;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+
+  /* Slim, unobtrusive scrollbars in the dashboard chrome. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 35%, transparent) transparent;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Storefront surface.
+   `--store-*` variables are injected per request from the creator's saved theme;
+   these classes are the only place the storefront reads them, so no per-store
+   Tailwind classes are ever generated.
+   --------------------------------------------------------------------------- */
+
+.storefront {
+  background-color: var(--store-background);
+  color: var(--store-text);
+  font-family: var(--store-body-font), ui-sans-serif, system-ui, sans-serif;
+  font-size: calc(1rem * var(--store-font-scale, 1));
+}
+
+.storefront h1,
+.storefront h2,
+.storefront h3 {
+  font-family:
+    var(--store-heading-font), var(--store-body-font), ui-sans-serif, system-ui, sans-serif;
+}
+
+.storefront-container {
+  width: 100%;
+  max-width: var(--store-content-width, 1200px);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+.storefront-surface {
+  background-color: var(--store-surface);
+  border: 1px solid var(--store-border);
+  border-radius: var(--store-radius);
+}
+
+.storefront-muted {
+  color: var(--store-muted);
+}
+
+.storefront-button {
+  background-color: var(--store-primary);
+  color: var(--store-background);
+  border-radius: var(--store-button-radius);
+  transition:
+    filter 140ms ease,
+    transform 140ms ease;
+}
+
+.storefront-button:hover {
+  filter: brightness(1.08);
+}
+
+.storefront-button:active {
+  transform: translateY(1px);
+}
+
+.storefront-button-outline {
+  background-color: transparent;
+  color: var(--store-text);
+  border: 1px solid var(--store-border);
+  border-radius: var(--store-button-radius);
+}
+
+.storefront-chip {
+  border: 1px solid var(--store-border);
+  border-radius: var(--store-button-radius);
+  color: var(--store-text);
+  background-color: var(--store-surface);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.storefront-chip[data-selected='true'] {
+  border-color: var(--store-primary);
+  background-color: color-mix(in oklab, var(--store-primary) 12%, transparent);
+}
+
+.storefront-chip[data-disabled='true'] {
+  opacity: 0.4;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.storefront-product-grid {
+  display: grid;
+  gap: calc(1.5rem * var(--store-spacing, 1));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .storefront-product-grid {
+    grid-template-columns: repeat(min(var(--store-columns, 3), 3), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .storefront-product-grid {
+    grid-template-columns: repeat(var(--store-columns, 3), minmax(0, 1fr));
+  }
+}
