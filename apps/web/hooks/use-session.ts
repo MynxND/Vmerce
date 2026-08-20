@@ -25,21 +25,16 @@ export function useSessionBootstrap(): void {
 
   React.useEffect(() => {
     if (status !== 'idle') return;
-    let cancelled = false;
     setStatus('loading');
 
     authApi
       .refresh()
       .then((session) => {
-        if (!cancelled) setSession(session);
+        setSession(session);
       })
       .catch(() => {
-        if (!cancelled) clear();
+        clear();
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [status, setSession, setStatus, clear]);
 }
 

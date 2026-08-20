@@ -10,10 +10,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-[0_1px_2px_rgb(18_16_32/0.16)] hover:bg-[color-mix(in_oklab,var(--primary)_88%,black)]',
+          'bg-primary text-primary-foreground shadow-[0_2px_5px_rgb(72_51_99/0.18)] hover:bg-[#6b4f95] hover:-translate-y-0.5',
         accent:
           'bg-accent text-accent-foreground shadow-[0_1px_2px_rgb(18_16_32/0.16)] hover:bg-[color-mix(in_oklab,var(--accent)_88%,black)]',
-        outline: 'border border-border bg-card hover:bg-muted',
+        outline: 'border border-border bg-card hover:bg-secondary',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary)_80%,var(--foreground)_6%)]',
         ghost: 'hover:bg-muted hover:text-foreground',
@@ -24,11 +24,11 @@ const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        sm: 'h-8 rounded-md px-3 text-[0.8125rem]',
-        default: 'h-10 rounded-lg px-4 text-sm',
-        lg: 'h-11 rounded-lg px-6 text-[0.9375rem]',
-        icon: 'size-10 rounded-lg',
-        'icon-sm': 'size-8 rounded-md',
+        sm: 'h-8 rounded-full px-3 text-[0.8125rem]',
+        default: 'h-10 rounded-full px-4 text-sm',
+        lg: 'h-12 rounded-full px-7 text-[0.9375rem]',
+        icon: 'size-10 rounded-full',
+        'icon-sm': 'size-8 rounded-full',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

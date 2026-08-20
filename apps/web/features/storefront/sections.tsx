@@ -28,35 +28,36 @@ function Hero({ section, store }: { section: StoreSectionDto; store: StorefrontS
   const title = settingString(section, 'title', `Welcome to ${store.name}`);
   const subtitle = settingString(section, 'subtitle');
   const buttonText = settingString(section, 'buttonText', 'Shop now');
-  const imageUrl = settingString(section, 'imageUrl');
+  const imageUrl = settingString(section, 'imageUrl', store.bannerUrl ?? '');
   const alignment = settingString(section, 'alignment', 'center');
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="storefront-hero relative overflow-hidden">
       {imageUrl && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
           <span
             aria-hidden
-            className="absolute inset-0"
-            style={{
-              backgroundColor: 'color-mix(in oklab, var(--store-background) 62%, transparent)',
-            }}
+            className="storefront-hero-overlay absolute inset-0"
           />
         </>
       )}
       <div
-        className="storefront-container relative py-20 sm:py-28"
-        style={{ textAlign: alignment as 'left' | 'center' | 'right' }}
+        className="storefront-container relative flex min-h-[62vh] flex-col justify-end py-16 sm:min-h-[72vh] sm:py-20"
+        style={{
+          textAlign: alignment as 'left' | 'center' | 'right',
+          alignItems: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start',
+        }}
       >
-        <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">{title}</h1>
+        <p className="mb-3 text-xs font-black uppercase tracking-[0.22em]">New collection</p>
+        <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.92] tracking-[-0.055em] sm:text-7xl lg:text-8xl">{title}</h1>
         {subtitle && (
-          <p className="storefront-muted mx-auto mt-4 max-w-xl text-base sm:text-lg">{subtitle}</p>
+          <p className="mt-5 max-w-xl text-base font-medium sm:text-lg">{subtitle}</p>
         )}
         <Link
           href={storeUrl(store.handle, '/products')}
-          className="storefront-button mt-8 inline-block px-6 py-3 text-sm font-semibold"
+          className="storefront-button mt-8 inline-block w-fit px-7 py-3.5 text-sm font-black uppercase tracking-wide"
         >
           {buttonText}
         </Link>
@@ -83,9 +84,10 @@ function ProductSection({
   if (products.length === 0) return null;
 
   return (
-    <section className="storefront-container py-14">
+    <section className="storefront-drop py-16 sm:py-20">
+      <div className="storefront-container">
       <div className="mb-6 flex items-end justify-between gap-4">
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
+        <div><p className="mb-2 text-[0.6875rem] font-black uppercase tracking-[0.2em] opacity-60">Fresh from the studio</p><h2 className="text-3xl font-black uppercase tracking-[-0.04em] sm:text-5xl">{title}</h2></div>
         <Link
           href={
             collectionSlug
@@ -101,6 +103,7 @@ function ProductSection({
         {products.map((product) => (
           <ProductCard key={product.id} product={product} handle={context.store.handle} />
         ))}
+      </div>
       </div>
     </section>
   );
@@ -118,15 +121,16 @@ function CollectionList({
 
   return (
     <section className="storefront-container py-14">
-      <h2 className="mb-6 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <p className="mb-2 text-[0.6875rem] font-black uppercase tracking-[0.2em] opacity-60">Browse our</p>
+      <h2 className="mb-8 text-3xl font-black uppercase tracking-[-0.04em] sm:text-5xl">{title}</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {context.collections.map((collection) => (
           <Link
             key={collection.id}
             href={storeUrl(context.store.handle, `/collections/${collection.slug}`)}
-            className="storefront-surface group relative block overflow-hidden"
+            className="storefront-collection-card group relative block overflow-hidden"
           >
-            <div className="aspect-[16/9]" style={{ backgroundColor: 'var(--store-border)' }}>
+            <div className="aspect-[4/3]" style={{ backgroundColor: 'var(--store-border)' }}>
               {collection.imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -137,9 +141,9 @@ function CollectionList({
                 />
               )}
             </div>
-            <div className="p-4">
-              <p className="font-medium">{collection.name}</p>
-              <p className="storefront-muted text-sm">{collection.productCount} products</p>
+            <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+              <p className="text-xl font-black uppercase tracking-tight">{collection.name}</p>
+              <p className="text-sm text-white/70">{collection.productCount} products →</p>
             </div>
           </Link>
         ))}

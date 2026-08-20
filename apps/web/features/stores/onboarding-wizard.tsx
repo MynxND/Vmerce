@@ -24,6 +24,7 @@ import { authApi } from '@/features/auth/api';
 import { useAuthStore } from '@/stores/auth-store';
 import { errorMessage } from '@/lib/api-error';
 import { ThemePresetCard } from './theme-preset-card';
+import { START_DRAFT_KEY, type StartDraft } from './start-wizard';
 
 const STEPS = ['You', 'Your shop', 'Style', 'First product'] as const;
 
@@ -50,6 +51,26 @@ export function OnboardingWizard() {
     description: '',
     themePreset: ThemePreset.CLEAN_COMMERCE,
   });
+
+  React.useEffect(() => {
+    const saved = window.sessionStorage.getItem(START_DRAFT_KEY);
+    if (!saved) return;
+    try {
+      const startDraft = JSON.parse(saved) as StartDraft;
+      setDraft((current) => ({
+        ...current,
+        creatorType: startDraft.creatorType,
+        name: startDraft.name,
+        handle: startDraft.handle,
+        themePreset: startDraft.themePreset,
+      }));
+      setHandleTouched(true);
+      setStep(1);
+      window.sessionStorage.removeItem(START_DRAFT_KEY);
+    } catch {
+      window.sessionStorage.removeItem(START_DRAFT_KEY);
+    }
+  }, []);
 
   const update = <K extends keyof DraftState>(key: K, value: DraftState[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));

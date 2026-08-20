@@ -42,8 +42,8 @@
   --font-sans: var(--font-body);
   --font-display: var(--font-heading);
 
-  --shadow-card: 0 1px 2px rgb(18 16 32 / 0.04), 0 8px 24px -12px rgb(18 16 32 / 0.12);
-  --shadow-pop: 0 2px 6px rgb(18 16 32 / 0.06), 0 18px 44px -16px rgb(18 16 32 / 0.24);
+  --shadow-card: 0 1px 2px rgb(72 51 99 / 0.03), 0 10px 30px -18px rgb(72 51 99 / 0.18);
+  --shadow-pop: 0 4px 12px rgb(72 51 99 / 0.08), 0 24px 54px -20px rgb(72 51 99 / 0.28);
 
   --animate-fade-in: fade-in 160ms ease-out;
   --animate-scale-in: scale-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -55,26 +55,26 @@
   --radius: 14px;
 
   /* Loaded via <link> in the root layout; degrades to the system stack offline. */
-  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-heading: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 
-  --background: oklch(0.99 0.003 285);
-  --foreground: oklch(0.21 0.02 285);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.02 285);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.02 285);
+  --background: #faf8f5;
+  --foreground: #2a2535;
+  --card: #fffefb;
+  --card-foreground: #2a2535;
+  --popover: #fffefb;
+  --popover-foreground: #2a2535;
 
   /* Signature iris — deliberately not shadcn's default near-black. */
-  --primary: oklch(0.53 0.22 285);
-  --primary-foreground: oklch(0.99 0.005 285);
+  --primary: #7b5ea7;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.96 0.008 285);
-  --secondary-foreground: oklch(0.32 0.02 285);
-  --muted: oklch(0.965 0.006 285);
-  --muted-foreground: oklch(0.53 0.015 285);
-  --accent: oklch(0.7 0.17 15);
-  --accent-foreground: oklch(0.99 0.005 285);
+  --secondary: #ede5f8;
+  --secondary-foreground: #5a4080;
+  --muted: #f3efea;
+  --muted-foreground: #8b8398;
+  --accent: #f5dcf0;
+  --accent-foreground: #6b4090;
 
   --destructive: oklch(0.58 0.21 22);
   --destructive-foreground: oklch(0.99 0.005 285);
@@ -83,13 +83,13 @@
   --warning: oklch(0.78 0.15 75);
   --warning-foreground: oklch(0.25 0.05 75);
 
-  --border: oklch(0.92 0.006 285);
-  --input: oklch(0.92 0.006 285);
-  --ring: oklch(0.53 0.22 285);
+  --border: rgb(122 94 167 / 0.12);
+  --input: #f3efea;
+  --ring: rgb(123 94 167 / 0.35);
 
-  --sidebar: oklch(0.985 0.004 285);
-  --sidebar-foreground: oklch(0.35 0.015 285);
-  --sidebar-accent: oklch(0.95 0.014 285);
+  --sidebar: #fffefb;
+  --sidebar-foreground: #6b638a;
+  --sidebar-accent: #ede5f8;
 }
 
 .dark {
@@ -289,6 +289,90 @@
   display: grid;
   gap: calc(1.5rem * var(--store-spacing, 1));
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Drop-driven storefront: creator campaigns first, commerce density second. */
+.storefront-ticker {
+  overflow: hidden;
+  background: var(--store-primary);
+  color: var(--store-background);
+  padding-block: 0.48rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.storefront-ticker > div {
+  width: max-content;
+  animation: storefront-marquee 22s linear infinite;
+}
+
+.storefront-nav-shell {
+  background: var(--store-text);
+  color: var(--store-background);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+}
+
+.storefront-hero {
+  background: var(--store-secondary);
+  color: var(--store-text);
+}
+
+.storefront-hero-overlay {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--store-background) 94%, transparent) 0%, color-mix(in oklab, var(--store-background) 68%, transparent) 48%, transparent 100%);
+}
+
+.storefront-drop:nth-of-type(even) {
+  background: var(--store-text);
+  color: var(--store-background);
+}
+
+.storefront-drop:nth-of-type(even) .storefront-muted {
+  color: color-mix(in oklab, var(--store-background) 65%, transparent);
+}
+
+.storefront-product-card {
+  background: var(--store-surface);
+  color: var(--store-text);
+  border-radius: calc(var(--store-radius) * 0.72);
+}
+
+.storefront-quick-view {
+  background: var(--store-text);
+  color: var(--store-background);
+  border-radius: var(--store-button-radius);
+}
+
+.storefront-collection-card {
+  border-radius: calc(var(--store-radius) * 0.8);
+}
+
+.storefront-collection-card::after {
+  content: '';
+  position: absolute;
+  inset: 35% 0 0;
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.78));
+  pointer-events: none;
+}
+
+.storefront-collection-card > div:last-child {
+  z-index: 1;
+}
+
+@keyframes storefront-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-45%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-ticker > div { animation: none; }
+}
+
+@media (max-width: 767px) {
+  .storefront-hero-overlay {
+    background: color-mix(in oklab, var(--store-background) 72%, transparent);
+  }
 }
 
 @media (min-width: 768px) {

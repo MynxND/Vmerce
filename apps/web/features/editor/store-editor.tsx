@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/page-header';
@@ -29,7 +29,7 @@ export function StoreEditor() {
           store && (
             <Button asChild variant="outline" size="sm">
               <a href={storeUrl(store.handle)} target="_blank" rel="noreferrer">
-                <ExternalLink /> Open store
+                <Eye /> Preview website <ExternalLink className="size-3" />
               </a>
             </Button>
           )
@@ -38,8 +38,8 @@ export function StoreEditor() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="layout">Layout</TabsTrigger>
-          <TabsTrigger value="design">Design</TabsTrigger>
+          <TabsTrigger value="layout">Content & layout</TabsTrigger>
+          <TabsTrigger value="design">Theme & style</TabsTrigger>
         </TabsList>
 
         <TabsContent value="layout" className="mt-6">

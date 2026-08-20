@@ -53,10 +53,10 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center gap-2 px-1">
-        <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-xl">
+        <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-xl shadow-sm">
           <Sparkles className="size-4" />
         </span>
-        <span className="font-display truncate text-sm font-bold tracking-tight">
+        <span className="font-display truncate text-base font-bold tracking-tight">
           {clientEnv.platformName}
         </span>
       </div>
@@ -108,7 +108,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Sidebar() {
   return (
-    <aside className="border-border bg-sidebar hidden w-64 shrink-0 border-r p-3 lg:block">
+    <aside className="border-border bg-sidebar hidden w-60 shrink-0 border-r p-4 lg:block">
       <div className="sticky top-3 h-[calc(100dvh-1.5rem)]">
         <SidebarContent />
       </div>

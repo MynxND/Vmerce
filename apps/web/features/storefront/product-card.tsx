@@ -9,8 +9,7 @@ export function ProductCard({ product, handle }: { product: ProductListItemDto; 
   return (
     <Link
       href={storeUrl(handle, `/products/${product.slug}`)}
-      className="storefront-surface group block overflow-hidden transition-transform hover:-translate-y-0.5"
-      style={{ boxShadow: 'var(--store-shadow)' }}
+      className="storefront-product-card group block overflow-hidden transition-transform hover:-translate-y-1"
     >
       <div
         className="relative aspect-square overflow-hidden"
@@ -37,10 +36,11 @@ export function ProductCard({ product, handle }: { product: ProductListItemDto; 
             Sale
           </span>
         )}
+        <span className="storefront-quick-view absolute inset-x-3 bottom-3 translate-y-3 px-4 py-2.5 text-center text-xs font-black uppercase opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">Quick view</span>
       </div>
 
       <div className="p-4">
-        <h3 className="truncate text-sm font-medium">{product.title}</h3>
+        <h3 className="truncate text-sm font-bold">{product.title}</h3>
         <p className="mt-1 flex items-baseline gap-2 text-sm">
           <span className="font-semibold">
             {formatMoney(product.price, { currency: product.currency })}

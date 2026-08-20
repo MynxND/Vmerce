@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingBag, X } from 'lucide-react';
+import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import * as React from 'react';
 import type { CollectionDto, StorefrontStoreDto } from '@cc/types';
 import { useCart } from './cart-store';
@@ -20,14 +20,12 @@ export function StoreHeader({ store, collections }: StoreHeaderProps) {
   const links = collections.slice(0, 5);
 
   return (
-    <header
-      className="sticky top-0 z-40 backdrop-blur-md"
-      style={{
-        backgroundColor: 'color-mix(in oklab, var(--store-background) 88%, transparent)',
-        borderBottom: '1px solid var(--store-border)',
-      }}
-    >
-      <div className="storefront-container flex h-16 items-center gap-4">
+    <header className="sticky top-0 z-40">
+      <div className="storefront-ticker" aria-label="Store announcement">
+        <div>NEW DROP · LIMITED RELEASE · WORLDWIDE SHIPPING · NEW DROP · LIMITED RELEASE · WORLDWIDE SHIPPING</div>
+      </div>
+      <div className="storefront-nav-shell">
+      <div className="storefront-container flex h-[72px] items-center gap-4">
         <Link href={storeUrl(store.handle)} className="flex min-w-0 items-center gap-2.5">
           {store.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -38,24 +36,25 @@ export function StoreHeader({ store, collections }: StoreHeaderProps) {
               style={{ border: '1px solid var(--store-border)' }}
             />
           ) : null}
-          <span className="truncate text-base font-semibold tracking-tight">{store.name}</span>
+          <span className="truncate text-xl font-black uppercase tracking-[-0.04em]">{store.name}</span>
         </Link>
 
         <nav className="ml-auto hidden items-center gap-6 md:flex">
-          <Link href={storeUrl(store.handle, '/products')} className="text-sm hover:opacity-70">
-            All products
+          <Link href={storeUrl(store.handle, '/products')} className="text-xs font-black uppercase tracking-wide hover:opacity-70">
+            Shop all
           </Link>
           {links.map((collection) => (
             <Link
               key={collection.id}
               href={storeUrl(store.handle, `/collections/${collection.slug}`)}
-              className="text-sm hover:opacity-70"
+              className="text-xs font-black uppercase tracking-wide hover:opacity-70"
             >
               {collection.name}
             </Link>
           ))}
         </nav>
 
+        <Link href={storeUrl(store.handle, '/products')} className="ml-auto p-2 md:ml-0" aria-label="Search products"><Search className="size-5" /></Link>
         <Link
           href={storeUrl(store.handle, '/cart')}
           className="relative ml-auto flex items-center gap-2 px-2 py-1.5 text-sm md:ml-0"
@@ -106,6 +105,7 @@ export function StoreHeader({ store, collections }: StoreHeaderProps) {
           ))}
         </nav>
       )}
+      </div>
     </header>
   );
 }
