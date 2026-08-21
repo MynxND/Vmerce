@@ -241,7 +241,9 @@ export const THEME_PRESETS: ThemePresetDefinition[] = [
   ),
 ];
 
-export const DEFAULT_THEME_PRESET = ThemePreset.CLEAN_COMMERCE;
+// Merch-first shops should open with a strong, campaign-ready canvas. Creators
+// can still switch to any quieter preset during onboarding or in the editor.
+export const DEFAULT_THEME_PRESET = ThemePreset.CYBER;
 
 export function getThemePreset(preset: ThemePreset): ThemePresetDefinition {
   return (

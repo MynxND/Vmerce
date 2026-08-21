@@ -9,7 +9,8 @@ export function ProductCard({ product, handle }: { product: ProductListItemDto; 
   return (
     <Link
       href={storeUrl(handle, `/products/${product.slug}`)}
-      className="storefront-product-card group block overflow-hidden transition-transform hover:-translate-y-1"
+      className="storefront-product-card group block overflow-hidden border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
+      style={{ borderColor: 'var(--store-border)' }}
     >
       <div
         className="relative aspect-square overflow-hidden"
@@ -20,7 +21,7 @@ export function ProductCard({ product, handle }: { product: ProductListItemDto; 
           <img
             src={product.thumbnailUrl}
             alt={product.title}
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
             loading="lazy"
           />
         )}
@@ -36,12 +37,14 @@ export function ProductCard({ product, handle }: { product: ProductListItemDto; 
             Sale
           </span>
         )}
-        <span className="storefront-quick-view absolute inset-x-3 bottom-3 translate-y-3 px-4 py-2.5 text-center text-xs font-black uppercase opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">Quick view</span>
       </div>
 
-      <div className="p-4">
-        <h3 className="truncate text-sm font-bold">{product.title}</h3>
-        <p className="mt-1 flex items-baseline gap-2 text-sm">
+      <div className="p-5">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <h3 className="line-clamp-2 text-base font-bold leading-tight">{product.title}</h3>
+          <span className="storefront-chip shrink-0 px-2 py-1 text-[10px] font-black uppercase tracking-wide">View</span>
+        </div>
+        <p className="flex items-baseline gap-2 text-sm">
           <span className="font-semibold">
             {formatMoney(product.price, { currency: product.currency })}
           </span>

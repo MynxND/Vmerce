@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/field';
 import { fieldsFor, type SectionField } from './section-fields';
+import { useLocale, type CopyKey } from '@/lib/i18n';
 
 type Settings = Record<string, unknown>;
 
@@ -179,12 +180,17 @@ function FieldControl({
   onPatch: (key: string, value: unknown) => void;
 }) {
   const value = settings[field.key];
+  const { t } = useLocale();
+  const labelKeys: Partial<Record<string, CopyKey>> = {
+    Heading: 'heading', Subheading: 'subheading', 'Button label': 'buttonLabel', 'Button link': 'buttonLink', 'Text alignment': 'textAlignment', 'Background image': 'backgroundImage',
+  };
+  const label = labelKeys[field.label] ? t(labelKeys[field.label]!) : field.label;
 
   switch (field.kind) {
     case 'boolean':
       return (
         <label className="border-border flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
-          <span className="text-sm font-medium">{field.label}</span>
+          <span className="text-sm font-medium">{label}</span>
           <Switch
             checked={value === true}
             onCheckedChange={(checked) => onPatch(field.key, checked)}
@@ -194,7 +200,7 @@ function FieldControl({
 
     case 'textarea':
       return (
-        <Field label={field.label} hint={field.hint}>
+        <Field label={label} hint={field.hint}>
           <Textarea
             rows={4}
             value={asString(value)}
@@ -206,12 +212,12 @@ function FieldControl({
 
     case 'number':
       return (
-        <Field label={field.label} hint={field.hint}>
+        <Field label={label} hint={field.hint}>
           <Input
             type="number"
             min={field.min}
             max={field.max}
-            value={asNumber(value, field.min ?? 1)}
+            value={asNumber(value, field.defaultValue ?? field.min ?? 1)}
             onChange={(event) => {
               const next = Number(event.target.value);
               if (!Number.isFinite(next)) return;
@@ -224,10 +230,10 @@ function FieldControl({
 
     case 'select':
       return (
-        <Field label={field.label} hint={field.hint}>
+        <Field label={label} hint={field.hint}>
           <Select
-            value={asString(value) || (field.options?.[0]?.value ?? '')}
-            onValueChange={(next) => onPatch(field.key, next)}
+            value={(typeof value === 'number' ? String(value) : asString(value)) || (field.options?.[0]?.value ?? '')}
+            onValueChange={(next) => onPatch(field.key, field.key === 'headingWeight' ? Number(next) : next)}
           >
             <SelectTrigger>
               <SelectValue />
@@ -245,7 +251,7 @@ function FieldControl({
 
     case 'collection':
       return (
-        <Field label={field.label} hint={field.hint}>
+        <Field label={label} hint={field.hint}>
           <Select
             value={asString(value) || NO_COLLECTION}
             onValueChange={(next) => onPatch(field.key, next === NO_COLLECTION ? null : next)}
@@ -268,7 +274,7 @@ function FieldControl({
     case 'image':
       return (
         <Field
-          label={field.label}
+          label={label}
           hint={field.hint ?? 'Paste a URL, or upload in the media library.'}
         >
           <div className="space-y-2">
@@ -290,7 +296,7 @@ function FieldControl({
     case 'links':
       return (
         <div className="space-y-1.5">
-          <Label>{field.label}</Label>
+          <Label>{label}</Label>
           <RowListEditor
             rows={asArray<Record<string, string>>(value)}
             onChange={(rows) => onPatch(field.key, rows)}
@@ -304,7 +310,7 @@ function FieldControl({
     case 'socials':
       return (
         <div className="space-y-1.5">
-          <Label>{field.label}</Label>
+          <Label>{label}</Label>
           <RowListEditor
             rows={asArray<Record<string, string>>(value)}
             onChange={(rows) => onPatch(field.key, rows)}
@@ -318,7 +324,7 @@ function FieldControl({
     case 'images':
       return (
         <div className="space-y-1.5">
-          <Label>{field.label}</Label>
+          <Label>{label}</Label>
           <ImageListEditor
             images={asArray<{ url: string; alt?: string }>(value)}
             onChange={(images) => onPatch(field.key, images)}
@@ -329,7 +335,7 @@ function FieldControl({
     case 'text':
     default:
       return (
-        <Field label={field.label} hint={field.hint}>
+        <Field label={label} hint={field.hint}>
           <Input
             value={asString(value)}
             placeholder={field.placeholder}

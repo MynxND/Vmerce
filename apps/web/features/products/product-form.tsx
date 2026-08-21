@@ -65,6 +65,16 @@ interface ProductFormProps {
   productId?: string;
 }
 
+function firstValidationMessage(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null;
+  if ('message' in value && typeof value.message === 'string') return value.message;
+  for (const child of Object.values(value)) {
+    const message = firstValidationMessage(child);
+    if (message) return message;
+  }
+  return null;
+}
+
 export function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -91,7 +101,16 @@ export function ProductForm({ productId }: ProductFormProps) {
 
   // Hydrate once the product arrives; `reset` keeps dirty tracking accurate.
   React.useEffect(() => {
-    if (productQuery.data) form.reset(fromProductDto(productQuery.data));
+    if (productQuery.data) {
+      const values = fromProductDto(productQuery.data);
+      form.reset(values);
+      // Radix Select can briefly publish an empty value while an async form is
+      // hydrating. Re-assert persisted enums so an untouched product remains
+      // valid and the controls never render blank.
+      form.setValue('status', values.status, { shouldDirty: false });
+      form.setValue('inventoryMode', values.inventoryMode, { shouldDirty: false });
+      form.setValue('fulfillmentType', values.fulfillmentType, { shouldDirty: false });
+    }
   }, [productQuery.data, form]);
 
   const options = form.watch('options');
@@ -180,7 +199,27 @@ export function ProductForm({ productId }: ProductFormProps) {
     onError: (error) => toast.error(errorMessage(error)),
   });
 
-  const onSubmit = form.handleSubmit((values) => save.mutate(values));
+  const submitValidated = form.handleSubmit(
+    (values) => save.mutate(values),
+    (errors) => {
+      const firstField = Object.keys(errors)[0] as keyof ProductFormValues | undefined;
+      if (firstField) form.setFocus(firstField);
+      toast.error(firstValidationMessage(errors) ?? 'Please check the highlighted fields before saving');
+    },
+  );
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const current = form.getValues();
+    if (!current.status) {
+      form.setValue('status', productQuery.data?.status ?? ProductStatus.DRAFT);
+    }
+    if (!current.inventoryMode) {
+      form.setValue('inventoryMode', productQuery.data?.inventoryMode ?? InventoryMode.NOT_TRACKED);
+    }
+    if (!current.fulfillmentType) {
+      form.setValue('fulfillmentType', productQuery.data?.fulfillmentType ?? FulfillmentType.MANUAL);
+    }
+    void submitValidated(event);
+  };
 
   if (isEdit && productQuery.isPending) {
     return <p className="text-muted-foreground py-16 text-center text-sm">Loading product…</p>;
@@ -340,7 +379,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                 name="status"
                 render={({ field }) => (
                   <Field label="Visibility" htmlFor="status">
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || productQuery.data?.status || ProductStatus.DRAFT} onValueChange={(value) => value && field.onChange(value)}>
                       <SelectTrigger id="status">
                         <SelectValue />
                       </SelectTrigger>
@@ -434,7 +473,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                 name="inventoryMode"
                 render={({ field }) => (
                   <Field label="Stock tracking" htmlFor="inventoryMode">
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || productQuery.data?.inventoryMode || InventoryMode.NOT_TRACKED} onValueChange={(value) => value && field.onChange(value)}>
                       <SelectTrigger id="inventoryMode">
                         <SelectValue />
                       </SelectTrigger>
@@ -459,7 +498,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                     htmlFor="fulfillmentType"
                     hint="Print-on-demand and dropship providers connect in Phase 3."
                   >
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value || productQuery.data?.fulfillmentType || FulfillmentType.MANUAL} onValueChange={(value) => value && field.onChange(value)}>
                       <SelectTrigger id="fulfillmentType">
                         <SelectValue />
                       </SelectTrigger>

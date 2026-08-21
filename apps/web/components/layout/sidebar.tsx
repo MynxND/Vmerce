@@ -10,6 +10,11 @@ import { FOOTER_ITEMS, NAV_GROUPS, type NavItem } from './nav-config';
 import { useActiveStoreSummary } from '@/hooks/use-active-store';
 import { cn, storeUrl } from '@/lib/utils';
 import { clientEnv } from '@/lib/env';
+import { useLocale, type CopyKey } from '@/lib/i18n';
+
+const LABEL_KEYS: Record<string, CopyKey> = {
+  Overview: 'overview', Catalogue: 'catalogue', Products: 'products', Collections: 'collections', Media: 'media', Selling: 'selling', Orders: 'orders', Customers: 'customers', Payments: 'payments', Discounts: 'discounts', Analytics: 'analytics', Storefront: 'storefront', Store: 'store', 'Store editor': 'storeEditor', Workspace: 'workspace', Team: 'team', Integrations: 'integrations', Settings: 'settings', 'Help & docs': 'helpDocs',
+};
 
 function isActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === '/dashboard';
@@ -21,6 +26,7 @@ function isActive(pathname: string, href: string): boolean {
 function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const pathname = usePathname();
   const active = isActive(pathname, item.href);
+  const { t } = useLocale();
 
   return (
     <Link
@@ -37,10 +43,10 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
       <item.icon
         className={cn('size-4 shrink-0', active ? 'text-primary' : 'text-muted-foreground')}
       />
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      <span className="min-w-0 flex-1 truncate">{LABEL_KEYS[item.label] ? t(LABEL_KEYS[item.label]!) : item.label}</span>
       {item.soon && (
         <Badge variant="neutral" className="px-1.5 py-0 text-[0.625rem]">
-          Soon
+          {t('soon')}
         </Badge>
       )}
     </Link>
@@ -49,6 +55,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
 
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const store = useActiveStoreSummary();
+  const { t } = useLocale();
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -74,7 +81,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <div key={group.label ?? `group-${index}`} className="space-y-1">
               {group.label && (
                 <p className="text-muted-foreground/80 px-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.12em]">
-                  {group.label}
+                  {LABEL_KEYS[group.label] ? t(LABEL_KEYS[group.label]!) : group.label}
                 </p>
               )}
               {visible.map((item) => (
@@ -95,7 +102,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             className="text-sidebar-foreground hover:bg-sidebar-accent/70 hover:text-foreground flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors"
           >
             <ExternalLink className="text-muted-foreground size-4" />
-            View store
+            {t('viewStore')}
           </a>
         )}
         {FOOTER_ITEMS.map((item) => (

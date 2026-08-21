@@ -49,7 +49,7 @@ export function OnboardingWizard() {
     name: '',
     handle: '',
     description: '',
-    themePreset: ThemePreset.CLEAN_COMMERCE,
+    themePreset: ThemePreset.CYBER,
   });
 
   React.useEffect(() => {

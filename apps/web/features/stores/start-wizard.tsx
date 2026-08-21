@@ -34,7 +34,7 @@ export function StartWizard() {
   const [step, setStep] = React.useState(0);
   const [creatorType, setCreatorType] = React.useState<CreatorType | null>(null);
   const [name, setName] = React.useState('');
-  const [themePreset, setThemePreset] = React.useState<ThemePreset>(ThemePreset.CLEAN_COMMERCE);
+  const [themePreset, setThemePreset] = React.useState<ThemePreset>(ThemePreset.CYBER);
   const [accountName, setAccountName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');

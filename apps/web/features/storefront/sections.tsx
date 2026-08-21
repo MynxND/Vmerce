@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { CSSProperties, ReactNode } from 'react';
 import type {
   CollectionDto,
   ProductListItemDto,
@@ -7,6 +8,7 @@ import type {
 } from '@cc/types';
 import { ProductCard } from './product-card';
 import { storeUrl } from '@/lib/utils';
+import { getStorefrontFont } from '@cc/shared';
 
 interface SectionContext {
   store: StorefrontStoreDto;
@@ -30,37 +32,53 @@ function Hero({ section, store }: { section: StoreSectionDto; store: StorefrontS
   const buttonText = settingString(section, 'buttonText', 'Shop now');
   const imageUrl = settingString(section, 'imageUrl', store.bannerUrl ?? '');
   const alignment = settingString(section, 'alignment', 'center');
+  const contentX = Math.min(96, Math.max(4, settingNumber(section, 'contentX', alignment === 'left' ? 4 : alignment === 'right' ? 96 : 50)));
+  const contentY = Math.min(90, Math.max(15, settingNumber(section, 'contentY', 70)));
+  const headingFont = getStorefrontFont(section.settings.headingFont);
+  const headingSize = Math.min(160, Math.max(32, settingNumber(section, 'headingSize', 96)));
+  const headingWeight = Math.min(900, Math.max(100, settingNumber(section, 'headingWeight', 900)));
+  const headingLetterSpacing = Math.min(30, Math.max(-12, settingNumber(section, 'headingLetterSpacing', -4)));
+  const headingTransform = settingString(section, 'headingTransform', 'uppercase');
+  const textColor = settingString(section, 'textColor', '#ffffff');
+  const buttonBackground = settingString(section, 'buttonBackground', 'var(--store-primary)');
+  const buttonTextColor = settingString(section, 'buttonTextColor', '#050509');
+  const buttonOffsetX = Math.min(500, Math.max(-500, settingNumber(section, 'buttonOffsetX', 0)));
+  const buttonOffsetY = Math.min(500, Math.max(-500, settingNumber(section, 'buttonOffsetY', 0)));
+  const headingFontFamily = `'${headingFont.family}', ${headingFont.fallback}`;
 
   return (
     <section className="storefront-hero relative overflow-hidden">
       {imageUrl && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
-          <span
-            aria-hidden
-            className="storefront-hero-overlay absolute inset-0"
-          />
-        </>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
       )}
+      <div className="relative min-h-[62vh] sm:min-h-[72vh]">
       <div
-        className="storefront-container relative flex min-h-[62vh] flex-col justify-end py-16 sm:min-h-[72vh] sm:py-20"
+        data-hero-content
+        className="absolute flex w-[92%] max-w-4xl touch-none flex-col"
         style={{
           textAlign: alignment as 'left' | 'center' | 'right',
           alignItems: alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start',
+          left: `${contentX}%`,
+          top: `${contentY}%`,
+          transform: `translate(${alignment === 'center' ? '-50%' : alignment === 'right' ? '-100%' : '0'}, -50%)`,
+          color: textColor,
         }}
       >
         <p className="mb-3 text-xs font-black uppercase tracking-[0.22em]">New collection</p>
-        <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.92] tracking-[-0.055em] sm:text-7xl lg:text-8xl">{title}</h1>
+        <h1 className="max-w-4xl leading-[0.92]" style={{ fontFamily: headingFontFamily, fontSize: `clamp(2rem, ${headingSize / 12}vw, ${headingSize}px)`, fontWeight: headingWeight, letterSpacing: `${headingLetterSpacing}px`, textTransform: headingTransform as 'none' | 'uppercase' | 'lowercase' | 'capitalize' }}>{title}</h1>
         {subtitle && (
           <p className="mt-5 max-w-xl text-base font-medium sm:text-lg">{subtitle}</p>
         )}
         <Link
+          data-hero-button
           href={storeUrl(store.handle, '/products')}
           className="storefront-button mt-8 inline-block w-fit px-7 py-3.5 text-sm font-black uppercase tracking-wide"
+          style={{ backgroundColor: buttonBackground, color: buttonTextColor, transform: `translate(${buttonOffsetX}px, ${buttonOffsetY}px)` }}
         >
           {buttonText}
         </Link>
+      </div>
       </div>
     </section>
   );
@@ -243,6 +261,48 @@ function Newsletter({ section }: { section: StoreSectionDto }) {
   );
 }
 
+function Marquee({ section }: { section: StoreSectionDto }) {
+  const items = settingString(section, 'items', 'NEW DROP|LIVE NOW|JOIN THE COMMUNITY')
+    .split('|')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (items.length === 0) return null;
+
+  const separator = settingString(section, 'separator', '///');
+  const speed = Math.min(90, Math.max(6, settingNumber(section, 'speed', 24)));
+  const direction = settingString(section, 'direction', 'left');
+  const backgroundColor = settingString(section, 'backgroundColor', '#070810');
+  const textColor = settingString(section, 'textColor', '#b9c2d6');
+  const accentColor = settingString(section, 'accentColor', '#d958ff');
+
+  return (
+    <section
+      className="storefront-marquee overflow-hidden border-y border-white/10 py-3"
+      style={{ backgroundColor, color: textColor }}
+      aria-label="Scrolling announcements"
+    >
+      <div
+        className="storefront-marquee-track flex w-max items-center whitespace-nowrap"
+        style={{
+          animationDuration: `${speed}s`,
+          animationDirection: direction === 'right' ? 'reverse' : 'normal',
+        }}
+      >
+        {[...items, ...items].map((item, index) => (
+          <span key={`${item}-${index}`} className="flex items-center">
+            <span className="px-7 text-[0.6875rem] font-black uppercase tracking-[0.28em] sm:px-10 sm:text-xs">
+              {item}
+            </span>
+            <span aria-hidden className="font-black tracking-[0.22em]" style={{ color: accentColor }}>
+              {separator}
+            </span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /** Renders one saved section. Unknown or chrome sections render nothing. */
 export function StoreSection({
   section,
@@ -253,11 +313,23 @@ export function StoreSection({
 }) {
   if (!section.visible) return null;
 
+  const font = getStorefrontFont(section.settings.sectionFont ?? 'Manrope');
+  const alignment = settingString(section, 'sectionAlignment');
+  const headingSize = section.settings.sectionHeadingSize;
+  const style = {
+    ...(settingString(section, 'sectionFont') ? { fontFamily: `'${font.family}', ${font.fallback}` } : {}),
+    ...(alignment ? { textAlign: alignment } : {}),
+    ...(settingString(section, 'sectionTextColor') ? { color: settingString(section, 'sectionTextColor') } : {}),
+    ...(settingString(section, 'sectionBackground') ? { backgroundColor: settingString(section, 'sectionBackground') } : {}),
+    ...(typeof headingSize === 'number' ? { '--section-heading-size': `${headingSize}px` } : {}),
+  } as CSSProperties;
+  const styled = (children: ReactNode) => <div className="storefront-section-style" style={style}>{children}</div>;
+
   switch (section.type) {
     case 'HERO':
       return <Hero section={section} store={context.store} />;
     case 'FEATURED_PRODUCTS':
-      return (
+      return styled(
         <ProductSection
           section={section}
           context={context}
@@ -269,18 +341,20 @@ export function StoreSection({
         />
       );
     case 'PRODUCT_GRID':
-      return <ProductSection section={section} context={context} />;
+      return styled(<ProductSection section={section} context={context} />);
     case 'COLLECTION_LIST':
-      return <CollectionList section={section} context={context} />;
+      return styled(<CollectionList section={section} context={context} />);
     case 'TEXT_BLOCK':
-      return <TextBlock section={section} />;
+      return styled(<TextBlock section={section} />);
     case 'IMAGE_BANNER':
     case 'IMAGE_WITH_TEXT':
-      return <ImageBanner section={section} />;
+      return styled(<ImageBanner section={section} />);
     case 'SOCIAL_LINKS':
-      return <SocialLinks section={section} context={context} />;
+      return styled(<SocialLinks section={section} context={context} />);
     case 'NEWSLETTER':
-      return <Newsletter section={section} />;
+      return styled(<Newsletter section={section} />);
+    case 'MARQUEE':
+      return styled(<Marquee section={section} />);
     // HEADER and FOOTER are rendered by the layout, not as page sections.
     default:
       return null;

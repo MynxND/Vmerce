@@ -108,6 +108,7 @@ enum SectionType {
   VIDEO
   SOCIAL_LINKS
   NEWSLETTER
+  MARQUEE
   FOOTER
 }
 

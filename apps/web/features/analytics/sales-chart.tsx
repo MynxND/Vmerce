@@ -13,6 +13,7 @@ import {
 import { formatMoney } from '@cc/shared';
 import type { DashboardSeriesPointDto } from '@cc/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLocale } from '@/lib/i18n';
 
 type Metric = 'revenue' | 'orders';
 
@@ -23,18 +24,20 @@ interface SalesChartProps {
 
 export function SalesChart({ series, currency }: SalesChartProps) {
   const [metric, setMetric] = React.useState<Metric>('revenue');
+  const { locale, t } = useLocale();
+  const dateLocale = locale === 'th' ? 'th-TH' : locale === 'ja' ? 'ja-JP' : 'en-GB';
 
   const data = React.useMemo(
     () =>
       series.map((point) => ({
         date: point.date,
-        label: new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(
+        label: new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'short' }).format(
           new Date(point.date),
         ),
         revenue: point.revenue / 100,
         orders: point.orders,
       })),
-    [series],
+    [series, dateLocale],
   );
 
   const isRevenue = metric === 'revenue';
@@ -43,8 +46,8 @@ export function SalesChart({ series, currency }: SalesChartProps) {
     <div className="space-y-4">
       <Tabs value={metric} onValueChange={(value) => setMetric(value as Metric)}>
         <TabsList>
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="revenue">{t('revenue')}</TabsTrigger>
+          <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -74,7 +77,7 @@ export function SalesChart({ series, currency }: SalesChartProps) {
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
               tickFormatter={(value: number) =>
                 isRevenue
-                  ? new Intl.NumberFormat('en', { notation: 'compact' }).format(value)
+                  ? new Intl.NumberFormat(dateLocale, { notation: 'compact' }).format(value)
                   : String(value)
               }
             />
@@ -88,8 +91,8 @@ export function SalesChart({ series, currency }: SalesChartProps) {
               }}
               labelStyle={{ color: 'var(--muted-foreground)', marginBottom: 4 }}
               formatter={(value: number) => [
-                isRevenue ? formatMoney(Math.round(value * 100), { currency }) : `${value} orders`,
-                isRevenue ? 'Revenue' : 'Orders',
+                isRevenue ? formatMoney(Math.round(value * 100), { currency }) : `${value} ${t('orders')}`,
+                isRevenue ? t('revenue') : t('orders'),
               ]}
             />
             <Area

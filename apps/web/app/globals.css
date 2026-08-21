@@ -55,8 +55,8 @@
   --radius: 14px;
 
   /* Loaded via <link> in the root layout; degrades to the system stack offline. */
-  --font-body: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-heading: 'Plus Jakarta Sans', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 
   --background: #faf8f5;
   --foreground: #2a2535;
@@ -141,6 +141,35 @@
     font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
+  }
+
+  html[lang='th'] {
+    --font-body: 'Noto Sans Thai', 'Manrope', ui-sans-serif, sans-serif;
+    --font-heading: 'Noto Sans Thai', 'Manrope', ui-sans-serif, sans-serif;
+  }
+
+  html[lang='ja'] {
+    --font-body: 'Noto Sans JP', 'Manrope', sans-serif;
+    --font-heading: 'Noto Sans JP', 'Manrope', sans-serif;
+  }
+
+  html[lang='th'] body,
+  html[lang='ja'] body {
+    font-feature-settings: normal;
+    letter-spacing: 0;
+  }
+
+  html[lang='th'] body {
+    line-height: 1.62;
+  }
+
+  html[lang='th'] h1,
+  html[lang='th'] h2,
+  html[lang='th'] h3,
+  html[lang='th'] h4 {
+    font-weight: 600;
+    line-height: 1.32;
+    letter-spacing: -0.012em;
   }
 
   h1,
@@ -309,8 +338,8 @@
 }
 
 .storefront-nav-shell {
-  background: var(--store-text);
-  color: var(--store-background);
+  background: #09090f;
+  color: #ffffff;
   box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
 }
 
@@ -365,8 +394,29 @@
   to { transform: translateX(-45%); }
 }
 
+.storefront-section-style h2 {
+  font-size: var(--section-heading-size);
+}
+
+@keyframes storefront-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.storefront-marquee-track {
+  animation-name: storefront-marquee-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.storefront-marquee:hover .storefront-marquee-track {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .storefront-ticker > div { animation: none; }
+  .storefront-marquee-track { animation-play-state: paused; }
 }
 
 @media (max-width: 767px) {

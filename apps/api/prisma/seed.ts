@@ -81,7 +81,7 @@ const PRODUCTS: ProductSpec[] = [
     status: 'ACTIVE',
     fulfillmentType: 'PRINT_ON_DEMAND',
     inventoryMode: 'NOT_TRACKED',
-    images: [image('cyber-neko-1'), image('cyber-neko-2'), image('cyber-neko-3')],
+    images: ['/products/cyber-neko-magsafe-case.png'],
     options: [
       {
         name: 'Phone Model',
@@ -112,7 +112,7 @@ const PRODUCTS: ProductSpec[] = [
     status: 'ACTIVE',
     fulfillmentType: 'STOCK',
     inventoryMode: 'TRACKED',
-    images: [image('midnight-stand-1'), image('midnight-stand-2')],
+    images: ['/products/midnight-acrylic-stand.png'],
     options: [
       { name: 'Size', values: [{ value: '100mm' }, { value: '150mm' }, { value: '200mm' }] },
       { name: 'Pose', values: [{ value: 'Wave' }, { value: 'Idle' }] },
@@ -129,7 +129,7 @@ const PRODUCTS: ProductSpec[] = [
     status: 'ACTIVE',
     fulfillmentType: 'STOCK',
     inventoryMode: 'TRACKED',
-    images: [image('sticker-pack-1'), image('sticker-pack-2')],
+    images: ['/products/neko-logo-sticker-pack.png'],
     options: [{ name: 'Pack', values: [{ value: 'Pack of 5' }, { value: 'Pack of 10' }] }],
     collections: ['Stickers', 'New Drop'],
     priceAdjustments: { 'Pack of 5': -10000 },
@@ -144,7 +144,7 @@ const PRODUCTS: ProductSpec[] = [
     status: 'ACTIVE',
     fulfillmentType: 'MANUAL',
     inventoryMode: 'TRACKED',
-    images: [image('tokyo-night-1'), image('tokyo-night-2')],
+    images: ['/products/tokyo-night-art-print.png'],
     options: [
       { name: 'Size', values: [{ value: 'A4' }, { value: 'A3' }, { value: 'A2' }] },
       { name: 'Finish', values: [{ value: 'Matte' }, { value: 'Lustre' }] },
@@ -188,7 +188,7 @@ async function seedStore(userId: string) {
   // Start from a clean slate so reseeding does not stack duplicate demo data.
   await prisma.store.deleteMany({ where: { handle: DEMO_HANDLE } });
 
-  const preset = getThemePreset(ThemePreset.VTUBER);
+  const preset = getThemePreset(ThemePreset.CYBER);
 
   const store = await prisma.store.create({
     data: {
@@ -230,10 +230,11 @@ async function seedStore(userId: string) {
             create: DEFAULT_HOME_SECTIONS.map((type, index) => {
               const settings = defaultSettingsFor(type) as Record<string, unknown>;
               if (type === 'HERO') {
-                settings.title = 'Season 3 merch is here';
-                settings.subtitle = 'Cyber Neko drops, acrylic stands and signed prints.';
+                settings.title = 'NEKO AFTER DARK';
+                settings.subtitle = 'Neon future. Neko attitude. Gear up for the night.';
                 settings.buttonText = 'Shop the drop';
-                settings.imageUrl = image('neko-hero', 1400);
+                settings.alignment = 'left';
+                settings.imageUrl = '/editor/cyber-neko-hero.png';
               }
               if (type === 'FEATURED_PRODUCTS') {
                 settings.title = 'New Drop';

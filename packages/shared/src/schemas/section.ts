@@ -39,6 +39,13 @@ const socialLinkSchema = z.object({
 
 const alignment = z.enum(['left', 'center', 'right']);
 const columns = z.coerce.number().int().min(1).max(6);
+const sharedStyleSettings = z.object({
+  sectionFont: z.string().trim().max(80).optional(),
+  sectionAlignment: alignment.optional(),
+  sectionTextColor: z.string().trim().max(30).optional(),
+  sectionBackground: z.string().trim().max(30).optional(),
+  sectionHeadingSize: z.coerce.number().int().min(16).max(120).optional(),
+});
 
 export const sectionSettingsSchemas = {
   [SectionType.HEADER]: z.object({
@@ -55,6 +62,18 @@ export const sectionSettingsSchemas = {
     buttonUrl: linkTarget.default('/products'),
     alignment: alignment.default('center'),
     imageUrl: optionalImage,
+    contentX: z.coerce.number().min(0).max(100).optional(),
+    contentY: z.coerce.number().min(0).max(100).default(70),
+    headingFont: z.string().trim().min(1).max(80).default('Anton'),
+    headingSize: z.coerce.number().int().min(32).max(160).default(96),
+    headingWeight: z.coerce.number().int().min(100).max(900).default(900),
+    headingLetterSpacing: z.coerce.number().min(-12).max(30).default(-4),
+    headingTransform: z.enum(['none', 'uppercase', 'lowercase', 'capitalize']).default('uppercase'),
+    textColor: z.string().trim().max(30).default('#ffffff'),
+    buttonBackground: z.string().trim().max(30).default('#22d3ee'),
+    buttonTextColor: z.string().trim().max(30).default('#050509'),
+    buttonOffsetX: z.coerce.number().min(-500).max(500).default(0),
+    buttonOffsetY: z.coerce.number().min(-500).max(500).default(0),
   }),
 
   [SectionType.FEATURED_PRODUCTS]: z.object({
@@ -126,6 +145,16 @@ export const sectionSettingsSchemas = {
     buttonText: shortText.default('Subscribe'),
   }),
 
+  [SectionType.MARQUEE]: z.object({
+    items: z.string().trim().min(1).max(2000).default('NEW DROP|LIVE NOW|JOIN THE COMMUNITY'),
+    separator: z.string().trim().max(20).default('///'),
+    speed: z.coerce.number().int().min(6).max(90).default(24),
+    direction: z.enum(['left', 'right']).default('left'),
+    backgroundColor: z.string().trim().max(30).default('#070810'),
+    textColor: z.string().trim().max(30).default('#b9c2d6'),
+    accentColor: z.string().trim().max(30).default('#d958ff'),
+  }),
+
   [SectionType.FOOTER]: z.object({
     showSocials: z.boolean().default(true),
     text: longText.default(''),
@@ -141,7 +170,10 @@ export function parseSectionSettings(
   settings: unknown,
 ): Record<string, unknown> {
   const schema = sectionSettingsSchemas[type];
-  return schema.parse(settings ?? {}) as Record<string, unknown>;
+  return {
+    ...(schema.parse(settings ?? {}) as Record<string, unknown>),
+    ...sharedStyleSettings.parse(settings ?? {}),
+  };
 }
 
 const sectionInputSchema = z.object({

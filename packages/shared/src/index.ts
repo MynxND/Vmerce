@@ -6,3 +6,4 @@ export * from './schemas/index';
 export * from './constants';
 export * from './promptpay';
 export * from './banks';
+export * from './fonts';

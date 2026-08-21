@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ApiClientError } from '@/lib/api-error';
+import { LocaleProvider } from '@/lib/i18n';
 
 function makeQueryClient(): QueryClient {
   return new QueryClient({
@@ -31,10 +32,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <TooltipProvider delayDuration={200}>
-          {children}
-          <Toaster position="bottom-right" richColors closeButton />
-        </TooltipProvider>
+        <LocaleProvider>
+          <TooltipProvider delayDuration={200}>
+            {children}
+            <Toaster position="bottom-right" richColors closeButton />
+          </TooltipProvider>
+        </LocaleProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

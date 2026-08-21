@@ -1,4 +1,5 @@
 import { SectionType } from '@cc/types';
+import { STOREFRONT_FONTS } from '@cc/shared';
 
 /**
  * Declarative description of each section's editable settings.
@@ -28,6 +29,7 @@ export interface SectionField {
   placeholder?: string;
   min?: number;
   max?: number;
+  defaultValue?: number;
   options?: Array<{ value: string; label: string }>;
 }
 
@@ -39,6 +41,13 @@ const ALIGNMENT_OPTIONS = [
 
 const COLUMNS: SectionField = { key: 'columns', label: 'Columns', kind: 'number', min: 1, max: 6 };
 const TITLE: SectionField = { key: 'title', label: 'Heading', kind: 'text' };
+const SHARED_STYLE_FIELDS: SectionField[] = [
+  { key: 'sectionFont', label: 'Section font', kind: 'select', options: STOREFRONT_FONTS.map((font) => ({ value: font.family, label: `${font.family} · ${font.category}` })) },
+  { key: 'sectionAlignment', label: 'Section alignment', kind: 'select', options: ALIGNMENT_OPTIONS },
+  { key: 'sectionHeadingSize', label: 'Heading size', kind: 'number', min: 16, max: 120, defaultValue: 48 },
+  { key: 'sectionTextColor', label: 'Text colour', kind: 'text', placeholder: '#ffffff' },
+  { key: 'sectionBackground', label: 'Background colour', kind: 'text', placeholder: '#111111' },
+];
 
 export const SECTION_FIELDS: Record<SectionType, SectionField[]> = {
   [SectionType.HEADER]: [
@@ -60,6 +69,38 @@ export const SECTION_FIELDS: Record<SectionType, SectionField[]> = {
       hint: 'A path on your shop, or a full URL.',
     },
     { key: 'alignment', label: 'Text alignment', kind: 'select', options: ALIGNMENT_OPTIONS },
+    {
+      key: 'headingFont',
+      label: 'Heading style',
+      kind: 'select',
+      options: STOREFRONT_FONTS.map((font) => ({ value: font.family, label: `${font.family} · ${font.category}` })),
+    },
+    { key: 'headingSize', label: 'Heading size', kind: 'number', min: 32, max: 160, defaultValue: 96 },
+    {
+      key: 'headingWeight',
+      label: 'Font weight',
+      kind: 'select',
+      options: [100, 200, 300, 400, 500, 600, 700, 800, 900].map((weight) => ({ value: String(weight), label: String(weight) })),
+    },
+    { key: 'headingLetterSpacing', label: 'Letter spacing', kind: 'number', min: -12, max: 30, defaultValue: -4 },
+    {
+      key: 'headingTransform',
+      label: 'Letter case',
+      kind: 'select',
+      options: [
+        { value: 'none', label: 'Original' },
+        { value: 'uppercase', label: 'UPPERCASE' },
+        { value: 'lowercase', label: 'lowercase' },
+        { value: 'capitalize', label: 'Title Case' },
+      ],
+    },
+    { key: 'contentX', label: 'Horizontal position (%)', kind: 'number', min: 0, max: 100, defaultValue: 4 },
+    { key: 'contentY', label: 'Vertical position (%)', kind: 'number', min: 0, max: 100, defaultValue: 70 },
+    { key: 'textColor', label: 'Text colour', kind: 'text', placeholder: '#ffffff' },
+    { key: 'buttonBackground', label: 'Button colour', kind: 'text', placeholder: '#22d3ee' },
+    { key: 'buttonTextColor', label: 'Button text colour', kind: 'text', placeholder: '#050509' },
+    { key: 'buttonOffsetX', label: 'Button horizontal offset', kind: 'number', min: -500, max: 500, defaultValue: 0 },
+    { key: 'buttonOffsetY', label: 'Button vertical offset', kind: 'number', min: -500, max: 500, defaultValue: 0 },
     { key: 'imageUrl', label: 'Background image', kind: 'image' },
   ],
 
@@ -145,6 +186,30 @@ export const SECTION_FIELDS: Record<SectionType, SectionField[]> = {
     { key: 'buttonText', label: 'Button label', kind: 'text' },
   ],
 
+  [SectionType.MARQUEE]: [
+    {
+      key: 'items',
+      label: 'Ticker items',
+      kind: 'textarea',
+      hint: 'Separate each item with a vertical bar ( | ).',
+      placeholder: 'NEW DROP|LIVE NOW|JOIN THE COMMUNITY',
+    },
+    { key: 'separator', label: 'Separator', kind: 'text', placeholder: '///' },
+    { key: 'speed', label: 'Loop duration (seconds)', kind: 'number', min: 6, max: 90 },
+    {
+      key: 'direction',
+      label: 'Direction',
+      kind: 'select',
+      options: [
+        { value: 'left', label: 'Right to left' },
+        { value: 'right', label: 'Left to right' },
+      ],
+    },
+    { key: 'backgroundColor', label: 'Background colour', kind: 'text', placeholder: '#070810' },
+    { key: 'textColor', label: 'Text colour', kind: 'text', placeholder: '#b9c2d6' },
+    { key: 'accentColor', label: 'Accent colour', kind: 'text', placeholder: '#d958ff' },
+  ],
+
   [SectionType.FOOTER]: [
     { key: 'text', label: 'Footer text', kind: 'textarea' },
     { key: 'showSocials', label: 'Show social links', kind: 'boolean' },
@@ -153,5 +218,8 @@ export const SECTION_FIELDS: Record<SectionType, SectionField[]> = {
 };
 
 export function fieldsFor(type: SectionType): SectionField[] {
-  return SECTION_FIELDS[type] ?? [];
+  const fields = SECTION_FIELDS[type] ?? [];
+  return type === SectionType.HEADER || type === SectionType.FOOTER || type === SectionType.HERO
+    ? fields
+    : [...fields, ...SHARED_STYLE_FIELDS];
 }

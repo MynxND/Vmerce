@@ -10,10 +10,13 @@ import { ThemeToggle } from './theme-toggle';
 import { UserMenu } from './user-menu';
 import { useActiveStoreSummary } from '@/hooks/use-active-store';
 import { storeUrl } from '@/lib/utils';
+import { LanguageSwitcher } from './language-switcher';
+import { useLocale } from '@/lib/i18n';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const store = useActiveStoreSummary();
+  const { t } = useLocale();
 
   return (
     <div className="bg-background flex min-h-dvh">
@@ -37,13 +40,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {store && (
             <div className="hidden items-center gap-2 sm:flex">
               <Button asChild variant="ghost" size="sm">
-                <Link href="/dashboard/store/editor"><Palette /> Edit website</Link>
+                <Link href="/dashboard/store/editor"><Palette /> {t('editWebsite')}</Link>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <a href={storeUrl(store.handle)} target="_blank" rel="noreferrer"><ExternalLink /> Preview store</a>
+                <a href={storeUrl(store.handle)} target="_blank" rel="noreferrer"><ExternalLink /> {t('previewStore')}</a>
               </Button>
             </div>
           )}
+          <LanguageSwitcher />
           <ThemeToggle />
           <UserMenu />
         </header>

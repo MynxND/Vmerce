@@ -21,9 +21,6 @@ export function StoreHeader({ store, collections }: StoreHeaderProps) {
 
   return (
     <header className="sticky top-0 z-40">
-      <div className="storefront-ticker" aria-label="Store announcement">
-        <div>NEW DROP · LIMITED RELEASE · WORLDWIDE SHIPPING · NEW DROP · LIMITED RELEASE · WORLDWIDE SHIPPING</div>
-      </div>
       <div className="storefront-nav-shell">
       <div className="storefront-container flex h-[72px] items-center gap-4">
         <Link href={storeUrl(store.handle)} className="flex min-w-0 items-center gap-2.5">

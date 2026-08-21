@@ -26,20 +26,19 @@ import {
 } from '@/components/status-badge';
 import { storeKeys, storesApi } from '@/features/stores/api';
 import { useActiveStoreId, useActiveStoreSummary } from '@/hooks/use-active-store';
-import { formatDate } from '@/lib/utils';
 import { StatCards } from './stat-cards';
 import { SalesChart } from './sales-chart';
+import { useLocale } from '@/lib/i18n';
 
-const RANGES = [
-  { value: 7, label: '7 days' },
-  { value: 30, label: '30 days' },
-  { value: 90, label: '90 days' },
-] as const;
+const RANGES = [7, 30, 90] as const;
 
 export function DashboardOverview() {
   const storeId = useActiveStoreId();
   const store = useActiveStoreSummary();
   const [days, setDays] = React.useState<number>(30);
+  const { locale, t } = useLocale();
+  const dateLocale = locale === 'th' ? 'th-TH' : locale === 'ja' ? 'ja-JP' : 'en-GB';
+  const localDate = (value: string | Date) => new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
 
   const { data, isPending, isError, error } = useQuery({
     queryKey: storeKeys.overview(storeId ?? 'none', days),
@@ -51,18 +50,18 @@ export function DashboardOverview() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={store ? `@${store.handle}` : undefined}
-        title="Overview"
-        description="How your shop is doing, at a glance."
+        title={t('overview')}
+        description={t('overviewDescription')}
         actions={
           <>
             <Button asChild variant="outline">
               <Link href="/dashboard/orders">
-                <ShoppingBag /> Orders
+                <ShoppingBag /> {t('orders')}
               </Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard/products/new">
-                <PackagePlus /> New product
+                <PackagePlus /> {t('newProduct')}
               </Link>
             </Button>
           </>
@@ -73,15 +72,15 @@ export function DashboardOverview() {
         <Tabs value={String(days)} onValueChange={(value) => setDays(Number(value))}>
           <TabsList>
             {RANGES.map((range) => (
-              <TabsTrigger key={range.value} value={String(range.value)}>
-                {range.label}
+              <TabsTrigger key={range} value={String(range)}>
+                {range} {t('days')}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
         {data && (
           <p className="text-muted-foreground hidden text-xs sm:block">
-            {formatDate(data.range.from)} — {formatDate(data.range.to)}
+            {localDate(data.range.from)} — {localDate(data.range.to)}
           </p>
         )}
       </div>
@@ -100,8 +99,8 @@ export function DashboardOverview() {
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Sales</CardTitle>
-            <CardDescription>Revenue and order volume over the selected range.</CardDescription>
+            <CardTitle>{t('sales')}</CardTitle>
+            <CardDescription>{t('salesDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {isPending ? (
@@ -114,8 +113,8 @@ export function DashboardOverview() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Top products</CardTitle>
-            <CardDescription>Best sellers in this period.</CardDescription>
+            <CardTitle>{t('topProducts')}</CardTitle>
+            <CardDescription>{t('topProductsDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {isPending &&
@@ -123,7 +122,7 @@ export function DashboardOverview() {
 
             {!isPending && (data?.topProducts.length ?? 0) === 0 && (
               <p className="text-muted-foreground py-6 text-center text-sm">
-                No sales yet in this period.
+                {t('noSales')}
               </p>
             )}
 
@@ -140,7 +139,7 @@ export function DashboardOverview() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{product.title}</span>
-                  <span className="text-muted-foreground block text-xs">{product.orders} sold</span>
+                  <span className="text-muted-foreground block text-xs">{product.orders} {t('sold')}</span>
                 </span>
                 <span className="shrink-0 text-sm font-medium">
                   {formatMoney(product.revenue, { currency: data.currency })}
@@ -154,12 +153,12 @@ export function DashboardOverview() {
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <div>
-            <CardTitle>Recent orders</CardTitle>
-            <CardDescription>The last few orders across your shop.</CardDescription>
+            <CardTitle>{t('recentOrders')}</CardTitle>
+            <CardDescription>{t('recentOrdersDescription')}</CardDescription>
           </div>
           <Button asChild variant="ghost" size="sm">
             <Link href="/dashboard/orders">
-              View all <ArrowUpRight />
+              {t('viewAll')} <ArrowUpRight />
             </Link>
           </Button>
         </CardHeader>
@@ -174,11 +173,11 @@ export function DashboardOverview() {
             <div className="px-5 pb-5">
               <EmptyState
                 icon={ShoppingBag}
-                title="No orders yet"
-                description="Once someone checks out, their order will show up here."
+                title={t('noOrders')}
+                description={t('noOrdersDescription')}
                 action={
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/dashboard/products">Add products</Link>
+                    <Link href="/dashboard/products">{t('addProducts')}</Link>
                   </Button>
                 }
               />
@@ -187,14 +186,14 @@ export function DashboardOverview() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead className="hidden md:table-cell">Items</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead className="hidden sm:table-cell">Payment</TableHead>
-                  <TableHead className="hidden lg:table-cell">Fulfillment</TableHead>
-                  <TableHead className="hidden xl:table-cell">Status</TableHead>
-                  <TableHead className="text-right">Date</TableHead>
+                  <TableHead>{t('order')}</TableHead>
+                  <TableHead>{t('customer')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('items')}</TableHead>
+                  <TableHead>{t('amount')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('payment')}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t('fulfillment')}</TableHead>
+                  <TableHead className="hidden xl:table-cell">{t('status')}</TableHead>
+                  <TableHead className="text-right">{t('date')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -225,7 +224,7 @@ export function DashboardOverview() {
                       <OrderStatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-right">
-                      {formatDate(order.createdAt)}
+                      {localDate(order.createdAt)}
                     </TableCell>
                   </TableRow>
                 ))}

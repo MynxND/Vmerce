@@ -148,6 +148,7 @@ export const SectionType = {
   VIDEO: 'VIDEO',
   SOCIAL_LINKS: 'SOCIAL_LINKS',
   NEWSLETTER: 'NEWSLETTER',
+  MARQUEE: 'MARQUEE',
   FOOTER: 'FOOTER',
 } as const;
 export type SectionType = (typeof SectionType)[keyof typeof SectionType];

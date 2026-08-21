@@ -5,11 +5,13 @@ build/
 out/
 .turbo/
 coverage/
+.qa-*.png
 
+# Local environment files (may contain secrets)
 .env
-.env.local
-.env.*.local
-!.env.example
+.env.*
+!**/.env.example
+!**/.env.*.example
 
 *.log
 npm-debug.log*
